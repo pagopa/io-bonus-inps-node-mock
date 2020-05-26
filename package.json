@@ -20,7 +20,7 @@
     "test": "jest",
     "lint": "tslint --project .",
     "generate": "npm-run-all -s generate:yaml-from-wsdl generate:ts-from-yaml:*",
-    "generate:ts-from-yaml:ConsultazioneISEE": "shx mkdir -p src/generated/ConsultazioneISEE && rimraf src/generated/ConsultazioneISEE/* && gen-api-models --strict 0 --api-spec src/generated/yaml-file/ConsultazioneISEE.yaml --out-dir src/generated/ConsultazioneISEE",
+    "generate:ts-from-yaml:ConsultazioneISEE": "shx mkdir -p src/generated/ConsultazioneISEE && rimraf src/generated/ConsultazioneISEE/* && gen-api-models --strict 0 --api-spec src/generated/yaml-file/SvcConsultazione.yaml --out-dir src/generated/ConsultazioneISEE",
     "generate:yaml-from-wsdl": "shx mkdir -p src/generated/yaml-file && rimraf generated/yaml-file/* && node generator/yamlGenerator.js"
   },
   "devDependencies": {

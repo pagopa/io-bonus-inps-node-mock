@@ -6,7 +6,7 @@
 		</xs:schema>
 	</wsdl:types>
 	<wsdl:message name="ISvcConsultazione_ConsultazioneSogliaIndicatore_InputMessage">
-		<wsdl:part name="parameters" element="tns:ConsultazioneSogliaIndicatore"/>
+		<wsdl:part name="parameters" element="tns:ConsultazioneSogliaIndicatoreRequest"/>
 	</wsdl:message>
 	<wsdl:message name="ISvcConsultazione_ConsultazioneSogliaIndicatore_OutputMessage">
 		<wsdl:part name="parameters" element="tns:ConsultazioneSogliaIndicatoreResponse"/>

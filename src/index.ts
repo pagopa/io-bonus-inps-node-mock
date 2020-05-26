@@ -14,10 +14,10 @@ App.newExpressApp(config)
   .then(app => {
     // Create a HTTP server from the new Express Application
     const server = http.createServer(app);
-    server.listen(config.NODO_MOCK.PORT);
+    server.listen(config.INPS_MOCK_SERVER.PORT);
 
     logger.info(
-      `Server started at ${config.NODO_MOCK.HOST}:${config.NODO_MOCK.PORT}`
+      `Server started at ${config.INPS_MOCK_SERVER.HOST}:${config.INPS_MOCK_SERVER.PORT}`
     );
   })
   .catch(error => {

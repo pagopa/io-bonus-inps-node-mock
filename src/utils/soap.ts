@@ -7,11 +7,14 @@ import * as soap from "soap";
 export type SoapMethodCB<I, O> = (
   input: I,
   cb: (
+    // tslint:disable-next-line: no-any
     err: any,
     result: O,
     raw: string,
+    // tslint:disable-next-line: no-any
     soapHeader: { readonly [k: string]: any }
-  ) => any,
+  ) => // tslint:disable-next-line: no-any
+  any,
   options?: Pick<soap.ISecurity, "postProcess">
 ) => void;
 
@@ -39,7 +42,15 @@ export function createClient<T>(
   hostHeader?: string
 ): Promise<soap.Client & T> {
   return new Promise((resolve, reject) => {
-    soap.createClient(wsdlUri, options, (err, client) => {
+    soap.createClient(wsdlUri, options, (
+      // tslint:disable-next-line: no-any
+      err: any,
+      client: {
+        // tslint:disable-next-line: no-any
+        setSecurity: (arg0: any) => void;
+        addHttpHeader: (arg0: string, arg1: string) => void;
+      }
+    ) => {
       if (err) {
         reject(err);
       } else {
