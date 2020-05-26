@@ -2,6 +2,8 @@
  * Utility used to generate YAML from WSDL
  */
 
+const WSDL_FILES = [`${__dirname}/../src/wsdl/ConsultazioneISEE.wsdl`];
+
 // TODO: [#159009939] Evaluate to refactor this module using typescript
 const apiconnWsdl = require("apiconnect-wsdl");
 const fs = require("fs");
@@ -14,8 +16,7 @@ startYamlGenerator().catch(error => {
 // Generate every YAML files using WSDL files
 async function startYamlGenerator() {
   console.info("YAML Generator STARTED!");
-  await generateYamlFilesForWsdl(`${__dirname}/../src/wsdl/CdPerNodo.wsdl`);
-  await generateYamlFilesForWsdl(`${__dirname}/../src/wsdl/NodoPerPsp.wsdl`);
+  await Promise.all(WSDL_FILES.map(generateYamlFilesForWsdl));
   console.info("YAML Generator COMPLETED!");
 }
 
