@@ -7,6 +7,7 @@ import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import * as path from "path";
 import * as soap from "soap";
 
+import getMockResponse from "../../fixtures/inps/ConsultazioneISEE";
 import { readWsdl } from "../../utils/soap";
 import { IConsultazioneISEESoap } from "./IConsultazioneISEESoap";
 
@@ -63,21 +64,12 @@ export async function attachConsultazioneISEEServer(
 export const ConsultazioneISEEServiceHandler = (): IConsultazioneISEESoap => ({
   ConsultazioneSogliaIndicatore: (
     // tslint:disable-next-line: variable-name
-    _input: unknown,
+    input: unknown,
     callback: (value: unknown) => void = toStdOut(
       "ConsultazioneSogliaIndicatore"
     )
   ) => {
     // fixed mock for now
-    callback({
-      _xml: `
-          <tns:ConsultazioneSogliaIndicatoreResponse>
-            <tns:ConsultazioneSogliaIndicatoreResult ProtocolloDSU="INPS-ISEE-0000-00000000A-00" SottoSoglia="SI" TipoIndicatore="ISEE Standard" DataPresentazioneDSU="2020-05-01">
-              <tns:Componente Nome="GIUSEPPE" Cognome="GARIBALDI" CodiceFiscale="VRDGPP83R10B293I"/>
-              <tns:Componente Nome="ENZO" Cognome="FERRARI" CodiceFiscale="FRRNZE98B18F257D"/>
-            </tns:ConsultazioneSogliaIndicatoreResult>
-          </tns:ConsultazioneSogliaIndicatoreResponse>
-      `
-    });
+    callback(getMockResponse(input));
   }
 });
