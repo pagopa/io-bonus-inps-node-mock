@@ -5,7 +5,7 @@
 			<xs:include schemaLocation="ConsultazioneISEE.xsd"/>
 		</xs:schema>
 	</wsdl:types>
-	<wsdl:message name="ISvcConsultazione_ConsultazioneSogliaIndicatore_InputMessage">
+	<wsdl:message name="ConsultazioneSogliaIndicatore">
 		<wsdl:part name="parameters" element="tns:ConsultazioneSogliaIndicatoreRequest"/>
 	</wsdl:message>
 	<wsdl:message name="ISvcConsultazione_ConsultazioneSogliaIndicatore_OutputMessage">
@@ -13,7 +13,7 @@
 	</wsdl:message>
 	<wsdl:portType name="ISvcConsultazione">
 		<wsdl:operation name="ConsultazioneSogliaIndicatore">
-			<wsdl:input message="tns:ISvcConsultazione_ConsultazioneSogliaIndicatore_InputMessage" wsaw:Action="http://inps.it/ConsultazioneISEE/ISvcConsultazione/ConsultazioneSogliaIndicatore"/>
+			<wsdl:input message="tns:ConsultazioneSogliaIndicatore" wsaw:Action="http://inps.it/ConsultazioneISEE/ISvcConsultazione/ConsultazioneSogliaIndicatore"/>
 			<wsdl:output message="tns:ISvcConsultazione_ConsultazioneSogliaIndicatore_OutputMessage" wsaw:Action="http://inps.it/ConsultazioneISEE/ISvcConsultazione/ConsultazioneSogliaIndicatoreResponse"/>
 		</wsdl:operation>
 	</wsdl:portType>
