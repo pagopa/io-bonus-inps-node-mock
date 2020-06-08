@@ -20,8 +20,8 @@ export async function newExpressApp(
   );
   // tslint:disable-next-line: no-object-mutation
   soapServer.log = (type, data) => {
-    logger.debug("SOAP TYPE: %s", type);
-    logger.debug("SOAP DATA: %s", data);
+    logger.debug(`SOAP TYPE: ${type}`);
+    logger.debug(`SOAP DATA: ${data}`);
   };
   return app;
 }

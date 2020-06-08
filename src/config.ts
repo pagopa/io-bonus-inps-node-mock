@@ -17,7 +17,7 @@ export const CONFIG = {
   // Used to expose services
   INPS_MOCK_SERVER: {
     HOST: process.env.HOST || localhost,
-    PORT: process.env.PORT || 3000,
+    PORT: process.env.PORT || 3003,
 
     ROUTES: {
       INPS: "/webservices/inps/SvcConsultazione"

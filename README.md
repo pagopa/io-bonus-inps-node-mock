@@ -1,7 +1,9 @@
 # io-bonusvacanze-inps-node-mock
-A mock implementation of the INPS soap service 
 
-##  Usage
+A mock implementation of the INPS soap service
+
+## Usage
+
 ```sh
 yarn install
 yarn build
@@ -9,34 +11,37 @@ yarn start
 ```
 
 ## Environment
-name|description|default
--|-|-
-WINSTON_LOG_LEVEL|desired log level|"debug"
-HOST|host this server listens to|"http://localhost"
-PORT|host this server listens to|3000
 
+| name              | description                 | default            |
+| ----------------- | --------------------------- | ------------------ |
+| WINSTON_LOG_LEVEL | desired log level           | "debug"            |
+| HOST              | host this server listens to | "http://localhost" |
+| PORT              | host this server listens to | 3003               |
 
 ## Example request
-```sh
-curl -d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:con="http://inps.it/ConsultazioneISEE">
-    <soapenv:Header/>
-    <soapenv:Body>
-        <con:ConsultazioneSogliaIndicatoreRequest>
-            <con:Richiesta DataValidita="2020-05-21" CodiceFiscale="VRDGPP83R10B293I" FornituraNucleo="SI" CodiceSoglia="BVAC01"/>
-        </con:ConsultazioneSogliaIndicatoreRequest>
-    </soapenv:Body>
-</soapenv:Envelope>' http://localhost:3000/webservices/inps/SvcConsultazione/ 
 
-# output: 
-# <?xml version="1.0" encoding="utf-8"?>
-# <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"  xmlns:tns="http://inps.it/ConsultazioneISEE" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:i0="http://tempuri.org/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
-#     <soap:Body>
-#        <tns:ConsultazioneSogliaIndicatoreResponse>
-#            <tns:ConsultazioneSogliaIndicatoreResult ProtocolloDSU="INPS-ISEE-0000-00000000A-00" SottoSoglia="SI" TipoIndicatore="ISEE Standard" DataPresentazioneDSU="2020-05-01">
-#                <tns:Componente Nome="GIUSEPPE" Cognome="GARIBALDI" CodiceFiscale="VRDGPP83R10B293I"/>
-#                <tns:Componente Nome="ENZO" Cognome="FERRARI" CodiceFiscale="FRRNZE98B18F257D"/>
-#            </tns:ConsultazioneSogliaIndicatoreResult>
-#        </tns:ConsultazioneSogliaIndicatoreResponse>
-#    </soap:Body>
-# </soap:Envelope>
+```sh
+
+curl -d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:con="http://inps.it/ConsultazioneISEE">
+<soapenv:Header>
+		<inps:Identity xmlns:inps="http://inps.it/">
+			<UserId>PAGOPA</UserId>
+			<CodiceUfficio>0001</CodiceUfficio>
+			<CodiceEnte>SPSPAGOPA</CodiceEnte>
+		</inps:Identity>
+	</soapenv:Header>
+	<soapenv:Body>
+		<con:ConsultazioneSogliaIndicatore>
+			<con:request CodiceFiscale="MXABKP55H18F205I" CodiceSoglia="BVAC01"
+			   FornituraNucleo="SI" DataValidita="2020-05-05"/>
+		</con:ConsultazioneSogliaIndicatore>
+	</soapenv:Body>
+</soapenv:Envelope>' http://localhost:3/webservices/inps/SvcConsultazione/
+```
+
+output:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Header><KD4SoapHeaderV2 xmlns="http://www.ibm.com/KD4Soap">xxxx==</KD4SoapHeaderV2></s:Header><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><ConsultazioneSogliaIndicatoreResponse xmlns="http://inps.it/ConsultazioneISEE"><ConsultazioneSogliaIndicatoreResult><IdRichiesta>36</IdRichiesta><Esito>OK</Esito><DatiIndicatore TipoIndicatore="ISEE Ordinario" SottoSoglia="SI" ProtocolloDSU="INPS-ISEE-2020-00000032P-00" DataPresentazioneDSU="2020-01-23" PresenzaDifformita="NO"><Componente CodiceFiscale="MXABKP55H18F205I" Cognome="MXA" Nome="BKP"/><Componente CodiceFiscale="HHZPLL55T10H501B" Cognome="HHZ" Nome="PLL"/></DatiIndicatore></ConsultazioneSogliaIndicatoreResult></ConsultazioneSogliaIndicatoreResponse></s:Body></s:Envelope>
 ```

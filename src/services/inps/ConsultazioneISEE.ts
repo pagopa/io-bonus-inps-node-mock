@@ -71,13 +71,18 @@ export const ConsultazioneISEEServiceHandler = (): IConsultazioneISEESoap => ({
     // fixed mock for now
     callback({
       _xml: `
-          <tns:ConsultazioneSogliaIndicatoreResponse>
-            <tns:ConsultazioneSogliaIndicatoreResult ProtocolloDSU="INPS-ISEE-0000-00000000A-00" SottoSoglia="SI" TipoIndicatore="ISEE Standard" DataPresentazioneDSU="2020-05-01">
-              <tns:Componente Nome="GIUSEPPE" Cognome="GARIBALDI" CodiceFiscale="VRDGPP83R10B293I"/>
-              <tns:Componente Nome="ENZO" Cognome="FERRARI" CodiceFiscale="FRRNZE98B18F257D"/>
-            </tns:ConsultazioneSogliaIndicatoreResult>
-          </tns:ConsultazioneSogliaIndicatoreResponse>
-      `
+<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+<s:Header><KD4SoapHeaderV2 xmlns="http://www.ibm.com/KD4Soap">
+xxxx==</KD4SoapHeaderV2></s:Header
+><s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<ConsultazioneSogliaIndicatoreResponse xmlns="http://inps.it/ConsultazioneISEE">
+<ConsultazioneSogliaIndicatoreResult><IdRichiesta>37</IdRichiesta>
+<Esito>OK</Esito><DatiIndicatore TipoIndicatore="ISEE Ordinario" SottoSoglia="SI" ProtocolloDSU="INPS-ISEE-2020-00000032P-00" 
+DataPresentazioneDSU="2020-01-23" PresenzaDifformita="NO"><Componente CodiceFiscale="SPNDNL80R13C523K" 
+Cognome="MXA" Nome="BKP"/><Componente CodiceFiscale="HHZPLL55T10H501B" Cognome="HHZ" Nome="PLL"/>
+</DatiIndicatore></ConsultazioneSogliaIndicatoreResult></ConsultazioneSogliaIndicatoreResponse></s:Body></s:Envelope>
+`
     });
   }
 });
