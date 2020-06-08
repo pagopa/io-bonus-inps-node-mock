@@ -63,7 +63,7 @@ export async function attachConsultazioneISEEServer(
 export const ConsultazioneISEEServiceHandler = (): IConsultazioneISEESoap => ({
   ConsultazioneSogliaIndicatore: (
     // tslint:disable-next-line: variable-name
-    _input: unknown,
+    input: unknown,
     callback: (value: unknown) => void = toStdOut(
       "ConsultazioneSogliaIndicatore"
     )
