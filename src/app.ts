@@ -1,27 +1,84 @@
 import * as express from "express";
+import * as bodyParserXml from "express-xml-bodyparser";
+import { constVoid } from "fp-ts/lib/function";
+import { delayTask } from "italia-ts-commons/lib/tasks";
+import { Millisecond } from "italia-ts-commons/lib/units";
 import * as morgan from "morgan";
-import { Configuration } from "./config";
-import * as ConsultazioneISEE from "./services/inps/ConsultazioneISEE";
-import { logger } from "./utils/logger";
+import { CONFIG } from "./config";
+import { ADE_RESPONSES } from "./fixtures/ade";
+import { parseFiscalCode } from "./fixtures/fiscalcode";
+import { INPS_RESPONSES } from "./fixtures/inps";
 
 export async function newExpressApp(
-  config: Configuration
+  _: typeof CONFIG,
+  requestMock: jest.Mock,
+  responseMock: jest.Mock
 ): Promise<Express.Application> {
   const app = express();
-  app.set("port", config.INPS_MOCK_SERVER.PORT);
+
+  morgan.token("body", (req, __) => JSON.stringify(req.body));
+
   const loggerFormat =
-    ":date[iso] [info]: :method :url :status - :response-time ms";
+    ":date[iso] [info]: :method :url :status - :body - :response-time ms";
+
   app.use(morgan(loggerFormat));
 
-  const soapServer = await ConsultazioneISEE.attachConsultazioneISEEServer(
-    app,
-    config.INPS_MOCK_SERVER.ROUTES.INPS,
-    ConsultazioneISEE.ConsultazioneISEEServiceHandler()
-  );
-  // tslint:disable-next-line: no-object-mutation
-  soapServer.log = (type, data) => {
-    logger.debug(`SOAP TYPE: ${type}`);
-    logger.debug(`SOAP DATA: ${data}`);
-  };
+  app.use(express.json());
+  app.use(express.urlencoded());
+  app.use(bodyParserXml({}));
+
+  app.post("/INPS*", async (req, res) => {
+    requestMock(req);
+
+    const fiscalCode =
+      req.body["soapenv:envelope"]["soapenv:body"][0][
+        "con:consultazionesogliaindicatore"
+      ][0]["con:request"][0].$.CodiceFiscale;
+
+    const options = parseFiscalCode(fiscalCode);
+
+    const [status, payload] = INPS_RESPONSES[options.inpsResponse]([
+      fiscalCode,
+      fiscalCode.replace("YYY", "TTT"),
+      fiscalCode.replace("YYY", "PPP")
+    ]);
+
+    await delayTask(
+      (options.inpsTimeout * 1000) as Millisecond,
+      constVoid
+    ).run();
+
+    responseMock(payload);
+    res.status(status).send(payload);
+  });
+
+  app.post("/ADE*", (req, res) => {
+    const fiscalCode = req.body.id;
+
+    const options = parseFiscalCode(fiscalCode);
+
+    responseMock(res);
+
+    const [status, payload] = ADE_RESPONSES[options.adeResponse](
+      options.adeResponse === "A" ? req.body : fiscalCode
+    );
+    res.status(status).json(payload);
+  });
+
+  app.post("/PROFILES*", (req, res) => {
+    requestMock(req);
+    responseMock(res);
+    res
+      .status(200)
+      .json(req.body)
+      .end();
+  });
+
+  app.post("/MESSAGES*", (req, res) => {
+    requestMock(req);
+    responseMock(req.body);
+    res.status(200).json(req.body);
+  });
+
   return app;
 }
