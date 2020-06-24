@@ -53,7 +53,7 @@ export async function newExpressApp(
   });
 
   app.post("/ADE*", (req, res) => {
-    const fiscalCode = req.body.id;
+    const fiscalCode = req.body.codiceFiscaleDichiarante;
 
     const options = parseFiscalCode(fiscalCode);
 
@@ -65,7 +65,8 @@ export async function newExpressApp(
     res.status(status).json(payload);
   });
 
-  app.post("/PROFILES*", (req, res) => {
+  // profile
+  app.get("/SERVICE*", (req, res) => {
     requestMock(req);
     responseMock(res);
     res
@@ -74,7 +75,8 @@ export async function newExpressApp(
       .end();
   });
 
-  app.post("/MESSAGES*", (req, res) => {
+  // message
+  app.post("/SERVICE*", (req, res) => {
     requestMock(req);
     responseMock(req.body);
     res.status(200).json(req.body);
