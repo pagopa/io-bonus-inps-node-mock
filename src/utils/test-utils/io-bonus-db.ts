@@ -1,73 +1,67 @@
-// tslint:disable: no-identical-functions
-
 import * as DocumentDb from "documentdb";
 
-// TODO: handle env variable properly
-const cosmosDbUri = process.env.COSMOSDB_BONUS_URI || "https://cosmosuri/";
-const cosmosDbName = process.env.COSMOSDB_BONUS_DATABASE_NAME || "dbname";
-const masterKey = process.env.COSMOSDB_BONUS_KEY || "base64Key";
+export interface IDbConfig {
+  cosmosDbUri: string;
+  cosmosDbName: string;
+  masterKey?: string;
+}
 
-const documentClient = new DocumentDb.DocumentClient(
-  cosmosDbUri,
-  {
-    masterKey
-  },
-  undefined,
-  "Strong"
-);
+export class BonusDocumentDbClient {
+  private documentClient: DocumentDb.DocumentClient;
+  private cosmosDbName: string;
+  constructor({ cosmosDbUri, cosmosDbName, masterKey }: IDbConfig) {
+    if (!cosmosDbUri) {
+      throw new Error(`cosmosDbUri cannot be empty`);
+    }
+    if (!cosmosDbName) {
+      throw new Error(`cosmosDbName cannot be empty`);
+    }
 
-const deleteDocument = (
-  documentUri: string,
-  partitionKey: string
-): Promise<void> =>
-  new Promise((resolve, reject) => {
-    documentClient.deleteDocument(documentUri, { partitionKey }, err => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
+    this.cosmosDbName = cosmosDbName;
+    this.documentClient = new DocumentDb.DocumentClient(
+      cosmosDbUri,
+      {
+        masterKey
+      },
+      undefined,
+      "Strong"
+    );
+  }
+
+  public deleteEligibilityCheck(fiscalCode: string): Promise<void> {
+    return this.deleteDocument("eligibility-checks", fiscalCode);
+  }
+
+  public deleteBonusActivation(bonusId: string): Promise<void> {
+    return this.deleteDocument("bonus-activations", bonusId);
+  }
+
+  public deleteUserBonus(bonusId: string): Promise<void> {
+    return this.deleteDocument("user-bonuses", bonusId);
+  }
+
+  public deleteBonusProcessing(bonusId: string): Promise<void> {
+    return this.deleteDocument("bonus-processing", bonusId);
+  }
+
+  private deleteDocument(
+    collectionName: string,
+    documentId: string,
+    partitionKey: string = documentId
+  ): Promise<void> {
+    const documentUri = DocumentDb.UriFactory.createDocumentUri(
+      this.cosmosDbName,
+      collectionName,
+      documentId
+    );
+    return new Promise((resolve, reject) => {
+      this.documentClient.deleteDocument(documentUri, { partitionKey }, err => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
     });
-  });
-
-export const deleteEligibilityCheck = (fiscalCode: string): Promise<void> =>
-  deleteDocument(
-    DocumentDb.UriFactory.createDocumentUri(
-      cosmosDbName,
-      "eligibility-checks",
-      fiscalCode
-    ),
-    fiscalCode
-  );
-
-export const deleteBonusActivation = (bonusId: string): Promise<void> =>
-  deleteDocument(
-    DocumentDb.UriFactory.createDocumentUri(
-      cosmosDbName,
-      "bonus-activations",
-      bonusId
-    ),
-    bonusId
-  );
-
-export const deleteUserBonus = async (bonusId: string): Promise<void> =>
-  deleteDocument(
-    DocumentDb.UriFactory.createDocumentUri(
-      cosmosDbName,
-      "user-bonuses",
-      bonusId
-    ),
-    bonusId
-  );
-
-export const deleteBonusProcessing = async (bonusId: string): Promise<void> =>
-  deleteDocument(
-    DocumentDb.UriFactory.createDocumentUri(
-      cosmosDbName,
-      "user-bonuses",
-      bonusId
-    ),
-    bonusId
-  );
-
-export const deleteBonusLease = async (bonusId: string): Promise<void> => {};
+  }
+}

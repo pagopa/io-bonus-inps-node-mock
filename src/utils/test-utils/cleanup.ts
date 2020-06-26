@@ -1,15 +1,12 @@
-import {
-  deleteBonusActivation,
-  deleteBonusProcessing,
-  deleteEligibilityCheck,
-  deleteUserBonus
-} from "./io-bonus-db";
+import { BonusDocumentDbClient } from "./io-bonus-db";
 
 const cleanUpDb = async ({
+  dbClient,
   fiscalCodes,
   bonuses,
   dryRun
 }: {
+  dbClient: BonusDocumentDbClient;
   fiscalCodes: readonly string[];
   bonuses: readonly string[];
   dryRun: boolean;
@@ -31,28 +28,28 @@ const cleanUpDb = async ({
     // eligibility checks
     ...fiscalCodes.map(fiscalCode =>
       executeOrDryRun(
-        () => deleteEligibilityCheck(fiscalCode),
+        () => dbClient.deleteEligibilityCheck(fiscalCode),
         `DELETE EligibilityCheck for ${fiscalCode}`
       )
     ),
     // bonus activation
     ...bonuses.map(bonus =>
       executeOrDryRun(
-        () => deleteBonusActivation(bonus),
+        () => dbClient.deleteBonusActivation(bonus),
         `DELETE BonusActivation for ${bonus}`
       )
     ),
     // user bonus
     ...bonuses.map(bonus =>
       executeOrDryRun(
-        () => deleteUserBonus(bonus),
+        () => dbClient.deleteUserBonus(bonus),
         `DELETE UserBonus for ${bonus}`
       )
     ),
     // bonus processing
     ...bonuses.map(bonus =>
       executeOrDryRun(
-        () => deleteBonusProcessing(bonus),
+        () => dbClient.deleteBonusProcessing(bonus),
         `DELETE BonusProcessing for ${bonus}`
       )
     )
@@ -62,7 +59,18 @@ const cleanUpDb = async ({
   return Promise.all(operations);
 };
 
-const TestingSession = () => {
+export interface ITestingSession {
+  cleanData: (
+    // tslint:disable-next-line: bool-param-default
+    dryRun?: boolean
+  ) => Promise<ReadonlyArray<readonly [string, boolean]>>;
+  registerFiscalCode: (fiscalCode: string) => void;
+  registerBonus: (bonus: string) => void;
+}
+
+export const createTestingSession = (
+  dbClient: BonusDocumentDbClient
+): ITestingSession => {
   const data = {
     bonuses: new Set<string>(),
     fiscalCodes: new Set<string>()
@@ -74,6 +82,7 @@ const TestingSession = () => {
     ): Promise<ReadonlyArray<readonly [string, boolean]>> {
       const result = await cleanUpDb({
         bonuses: [...data.bonuses],
+        dbClient,
         dryRun,
         fiscalCodes: [...data.fiscalCodes]
       });
@@ -89,5 +98,3 @@ const TestingSession = () => {
     }
   };
 };
-
-export const createTestingSession = () => TestingSession();

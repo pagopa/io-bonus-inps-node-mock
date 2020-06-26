@@ -6,6 +6,7 @@ import waitForExpect from "wait-for-expect";
 import { makeFiscalCode } from "../fixtures/fiscalcode";
 import { initExpressServer } from "../server";
 import { createTestingSession } from "../utils/test-utils/cleanup";
+import { BonusDocumentDbClient } from "../utils/test-utils/io-bonus-db";
 
 // tslint:disable-next-line: no-object-mutation
 waitForExpect.defaults.timeout = 30000;
@@ -21,7 +22,14 @@ const API_URL = "http://localhost:7071/api/v1";
 
 // tslint:disable-next-line: no-let
 let server: http.Server;
-const testingSession = createTestingSession();
+// tslint:disable-next-line: no-let
+const testingSession = createTestingSession(
+  new BonusDocumentDbClient({
+    cosmosDbName: process.env.COSMOSDB_BONUS_DATABASE_NAME || "",
+    cosmosDbUri: process.env.COSMOSDB_BONUS_URI || "",
+    masterKey: process.env.COSMOSDB_BONUS_KEY
+  })
+);
 
 beforeAll(async () => {
   server = await initExpressServer(requestMock, responseMock);
@@ -30,7 +38,7 @@ beforeAll(async () => {
 afterAll(async () => {
   server.close();
   const cleanedData = await testingSession.cleanData().catch(err => {
-    console.error('cleanup general failure', err);
+    console.error("cleanup general failure", err);
     return [];
   });
   cleanedData.forEach(([log, result]) => {
