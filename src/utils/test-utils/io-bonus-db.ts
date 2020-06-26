@@ -56,7 +56,11 @@ export class BonusDocumentDbClient {
     );
     return new Promise((resolve, reject) => {
       this.documentClient.deleteDocument(documentUri, { partitionKey }, err => {
-        if (err) {
+        if (
+          err &&
+          // it's not an error if there's no record to eliminate
+          err.code !== 404
+        ) {
           reject(err);
         } else {
           resolve();
