@@ -5,6 +5,7 @@ import fetch from "node-fetch";
 import waitForExpect from "wait-for-expect";
 import { makeFiscalCode } from "../fixtures/fiscalcode";
 import { initExpressServer } from "../server";
+import { createTestingSession } from "../utils/test-utils/cleanup";
 
 // tslint:disable-next-line: no-object-mutation
 waitForExpect.defaults.timeout = 30000;
@@ -20,12 +21,26 @@ const API_URL = "http://localhost:7071/api/v1";
 
 // tslint:disable-next-line: no-let
 let server: http.Server;
+const testingSession = createTestingSession();
 
 beforeAll(async () => {
   server = await initExpressServer(requestMock, responseMock);
 });
 
-afterAll(() => server.close());
+afterAll(async () => {
+  server.close();
+  const cleanedData = await testingSession.cleanData().catch(err => {
+    console.error('cleanup general failure', err);
+    return [];
+  });
+  cleanedData.forEach(([log, result]) => {
+    if (result) {
+      console.log(`cleanup success ${log}`);
+    } else {
+      console.error(`cleanup failure ${log}`);
+    }
+  });
+});
 afterEach(() => jest.resetAllMocks());
 
 describe("init", () => {
@@ -36,6 +51,8 @@ describe("init", () => {
       inpsResponse: "A",
       inpsTimeout: 0
     });
+    testingSession.registerFiscalCode(fiscalCode);
+
     const res = await fetch(
       `${API_URL}/bonus/vacanze/eligibility/${fiscalCode}`,
       {
@@ -67,6 +84,8 @@ describe("init", () => {
       inpsResponse: "D",
       inpsTimeout: 0
     });
+    testingSession.registerFiscalCode(fiscalCode);
+
     const res = await fetch(
       `${API_URL}/bonus/vacanze/eligibility/${fiscalCode}`,
       {
@@ -96,6 +115,8 @@ describe("init", () => {
       inpsResponse: "A",
       inpsTimeout: 0
     });
+    testingSession.registerFiscalCode(fiscalCode);
+
     const res = await fetch(
       `${API_URL}/bonus/vacanze/activations/${fiscalCode}`,
       {
@@ -103,9 +124,13 @@ describe("init", () => {
       }
     );
     expect(res.status).toEqual(201);
-    expect(await res.json()).toMatchObject({
+    const createdBonusActivation = await res.json();
+    expect(createdBonusActivation).toMatchObject({
       id: expect.any(String)
     });
+
+    testingSession.registerBonus(createdBonusActivation.id);
+
     await waitForExpect(() => {
       expect(requestMock).toHaveBeenCalledTimes(1);
       expect(responseMock).toHaveBeenCalledWith(
