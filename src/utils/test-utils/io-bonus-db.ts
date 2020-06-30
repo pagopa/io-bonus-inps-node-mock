@@ -44,6 +44,10 @@ export class BonusDocumentDbClient {
     return this.deleteDocument("bonus-processing", bonusId);
   }
 
+  public deleteBonusLease(familyUID: string): Promise<void> {
+    return this.deleteDocument("bonus-leases", familyUID);
+  }
+
   private deleteDocument(
     collectionName: string,
     documentId: string,

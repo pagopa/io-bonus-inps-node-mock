@@ -6,7 +6,10 @@ import { Millisecond } from "italia-ts-commons/lib/units";
 import * as morgan from "morgan";
 import { CONFIG } from "./config";
 import { ADE_RESPONSES } from "./fixtures/ade";
-import { parseFiscalCode } from "./fixtures/fiscalcode";
+import {
+  getFamilyMembersForFiscalCode,
+  parseFiscalCode
+} from "./fixtures/fiscalcode";
 import { INPS_RESPONSES } from "./fixtures/inps";
 
 export async function newExpressApp(
@@ -37,11 +40,9 @@ export async function newExpressApp(
 
     const options = parseFiscalCode(fiscalCode);
 
-    const [status, payload] = INPS_RESPONSES[options.inpsResponse]([
-      fiscalCode,
-      fiscalCode.replace("YYY", "TTT"),
-      fiscalCode.replace("YYY", "PPP")
-    ]);
+    const [status, payload] = INPS_RESPONSES[options.inpsResponse](
+      getFamilyMembersForFiscalCode(fiscalCode)
+    );
 
     await delayTask(
       (options.inpsTimeout * 1000) as Millisecond,

@@ -24,7 +24,6 @@ export const EligibilityCheckSuccessEligible = (
                   ProtocolloDSU="INPS-ISEE-2020-00000032P-00" 
                   DataPresentazioneDSU="2020-01-23" PresenzaDifformita="NO">
                   ${familyMembers.map(memberStr)}
-  <Componente CodiceFiscale="BAAAAA00A00A000B" Cognome="Matteo" Nome="Boschi"/>
 </DatiIndicatore></ConsultazioneSogliaIndicatoreResult>
 </ConsultazioneSogliaIndicatoreResponse>
 </s:Body>
