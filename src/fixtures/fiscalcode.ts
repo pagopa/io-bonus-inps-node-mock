@@ -26,7 +26,7 @@ export const makeFiscalCode = ({
   inpsTimeout
 }: FiscalCodeParams): FiscalCode => {
   return FiscalCode.decode(
-    `${adeResponse}${inpsResponse}XYYY${zeroPad(adeTimeout, 2)}R13Y5${zeroPad(
+    `${adeResponse}${inpsResponse}XYYY${zeroPad(adeTimeout, 2)}R16F9${zeroPad(
       inpsTimeout,
       2
     )}K`
@@ -44,4 +44,14 @@ export const parseFiscalCode = (fiscalCode: FiscalCode): FiscalCodeParams => {
   } as FiscalCodeParams).getOrElseL(errs => {
     throw new Error(`unable to parse fiscal code ${readableReport(errs)}`);
   });
+};
+
+export const getFamilyMembersForFiscalCode = (
+  fiscalCode: FiscalCode
+): ReadonlyArray<FiscalCode> => {
+  return [
+    fiscalCode,
+    fiscalCode.replace("YYY", "TTT") as FiscalCode,
+    fiscalCode.replace("YYY", "PPP") as FiscalCode
+  ];
 };
