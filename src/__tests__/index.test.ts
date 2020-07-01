@@ -5,6 +5,16 @@ import { FiscalCode } from "italia-ts-commons/lib/strings";
 import fetch from "node-fetch";
 import waitForExpect from "wait-for-expect";
 import {
+  processAdeRequest,
+  processAdeResponse,
+  processInpsRequest,
+  processInpsResponse,
+  processServiceGetProfileRequest,
+  processServiceGetProfileResponse,
+  processServiceSendMessageRequest,
+  processServiceSendMessageResponse
+} from "../__mocks__/mocks";
+import {
   getFamilyMembersForFiscalCode,
   makeFiscalCode
 } from "../fixtures/fiscalcode";
@@ -24,9 +34,6 @@ waitForExpect.defaults.interval = 50;
 
 jest.setTimeout(40000);
 
-const responseMock = jest.fn();
-const requestMock = jest.fn();
-
 const sleep = (ms: number) => new Promise(ok => setTimeout(ok, ms));
 
 const API_URL = "http://localhost:7071/api/v1";
@@ -40,7 +47,16 @@ const db = new BonusDocumentDbClient({
 // tslint:disable-next-line: no-let
 let server: http.Server;
 beforeAll(async () => {
-  server = await initExpressServer(requestMock, responseMock);
+  server = await initExpressServer({
+    processAdeRequest,
+    processAdeResponse,
+    processInpsRequest,
+    processInpsResponse,
+    processServiceGetProfileRequest,
+    processServiceGetProfileResponse,
+    processServiceSendMessageRequest,
+    processServiceSendMessageResponse
+  });
 });
 
 afterAll(async () => {
@@ -52,6 +68,8 @@ beforeEach(() => jest.resetAllMocks());
 describe("Scenario: DSU is not eligible", () => {
   // tslint:disable-next-line: no-let one-variable-per-declaration
   let fiscalCode: FiscalCode, testingSession: ITestingSession;
+  // tslint:disable-next-line: no-let
+  let familyMembers: ReturnType<typeof getFamilyMembersForFiscalCode>;
 
   beforeAll(() => {
     testingSession = createTestingSession(db);
@@ -61,6 +79,7 @@ describe("Scenario: DSU is not eligible", () => {
       inpsResponse: "D",
       inpsTimeout: 0
     });
+    familyMembers = getFamilyMembersForFiscalCode(fiscalCode);
   });
 
   afterAll(async () => {
@@ -69,9 +88,7 @@ describe("Scenario: DSU is not eligible", () => {
 
   it("should not be sottosoglia", async () => {
     testingSession.registerFiscalCode(fiscalCode);
-    testingSession.registerFamilyUID(
-      generateFamilyUID(getFamilyMembersForFiscalCode(fiscalCode))
-    );
+    testingSession.registerFamilyUID(generateFamilyUID(familyMembers));
 
     const res = await fetch(
       `${API_URL}/bonus/vacanze/eligibility/${fiscalCode}`,
@@ -84,23 +101,37 @@ describe("Scenario: DSU is not eligible", () => {
       id: fiscalCode
     });
     await waitForExpect(() => {
-      expect(requestMock).toHaveBeenCalledTimes(1);
-      expect(responseMock).toHaveBeenCalledWith(
+      expect(processInpsRequest).toHaveBeenCalledTimes(1);
+      expect(processInpsResponse).toHaveBeenCalledWith(
         expect.stringContaining('SottoSoglia="NO"')
       );
     });
     await waitForExpect(() => {
-      expect(requestMock).toHaveBeenCalledTimes(2);
-      const req = requestMock.mock.calls[1][0];
-      expect(JSON.stringify(req.body)).toContain("supera la soglia");
+      expect(processServiceSendMessageRequest).toHaveBeenCalledTimes(1);
+      const {
+        body: {
+          content: { subject, markdown }
+        },
+        path
+      } = processServiceSendMessageRequest.mock.calls[0][0];
+
+      // sent to the correct user
+      expect(path).toContain(fiscalCode);
+      // sent the correct message
+      expect(markdown).toContain("supera la soglia");
+      expect(subject).toContain("completato le verifiche");
+      // message sent
+      const { statusCode } = processServiceSendMessageResponse.mock.calls[0][0];
+      expect(statusCode).toBe(201);
     });
-    expect(true).toBeTruthy();
   });
 });
 
 describe("Scenario: DSU is eligible and ADE will approve", () => {
   // tslint:disable-next-line: no-let one-variable-per-declaration
   let fiscalCode: FiscalCode, testingSession: ITestingSession;
+  // tslint:disable-next-line: no-let
+  let familyMembers: ReturnType<typeof getFamilyMembersForFiscalCode>;
 
   beforeAll(() => {
     testingSession = createTestingSession(db);
@@ -110,6 +141,7 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
       inpsResponse: "A",
       inpsTimeout: 0
     });
+    familyMembers = getFamilyMembersForFiscalCode(fiscalCode);
   });
 
   afterAll(async () => {
@@ -117,9 +149,7 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
   });
   it("should be sottosoglia", async () => {
     testingSession.registerFiscalCode(fiscalCode);
-    testingSession.registerFamilyUID(
-      generateFamilyUID(getFamilyMembersForFiscalCode(fiscalCode))
-    );
+    testingSession.registerFamilyUID(generateFamilyUID(familyMembers));
 
     const res = await fetch(
       `${API_URL}/bonus/vacanze/eligibility/${fiscalCode}`,
@@ -132,22 +162,34 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
       id: fiscalCode
     });
     await waitForExpect(() => {
-      expect(requestMock).toHaveBeenCalledTimes(1);
-      expect(responseMock).toHaveBeenCalledWith(
+      expect(processInpsRequest).toHaveBeenCalledTimes(1);
+      expect(processInpsResponse).toHaveBeenCalledWith(
         expect.stringContaining('SottoSoglia="SI"')
       );
     });
-    await waitForExpect(() => {
-      expect(requestMock).toHaveBeenCalledTimes(2);
-      const req = requestMock.mock.calls[1][0];
-      expect(JSON.stringify(req.body)).toContain(
-        "il tuo nucleo familiare ha diritto al Bonus Vacanze"
-      );
+
+    await waitForExpect(async () => {
+      expect(processServiceSendMessageRequest).toHaveBeenCalledTimes(1);
+      const {
+        body: {
+          content: { subject, markdown }
+        },
+        path
+      } = processServiceSendMessageRequest.mock.calls[0][0];
+
+      // sent to the correct user
+      expect(path).toContain(fiscalCode);
+      // sent the correct message
+      expect(markdown).toContain("il tuo nucleo familiare ha diritto");
+      expect(subject).toContain("completato le verifiche");
+      // message sent
+      const { statusCode } = processServiceSendMessageResponse.mock.calls[0][0];
+      expect(statusCode).toBe(201);
     });
-    expect(true).toBeTruthy();
   });
 
   it("should succeed bonus activation", async () => {
+    await sleep(10000);
     const res = await fetch(
       `${API_URL}/bonus/vacanze/activations/${fiscalCode}`,
       {
@@ -163,16 +205,23 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
     testingSession.registerBonus(createdBonusActivation.id);
 
     await waitForExpect(() => {
-      expect(requestMock).toHaveBeenCalledTimes(1);
-      expect(responseMock).toHaveBeenCalledWith(
-        expect.stringContaining("foobar")
-      );
+      expect(processAdeRequest).toHaveBeenCalledTimes(1);
+      expect(processAdeResponse).toHaveBeenCalledTimes(1);
     });
     await waitForExpect(() => {
-      expect(requestMock).toHaveBeenCalledTimes(2);
-      const req = requestMock.mock.calls[1][0];
-      expect(JSON.stringify(req.body)).toContain("foobar");
+      // one message per family member
+      expect(processServiceSendMessageRequest).toHaveBeenCalledTimes(
+        familyMembers.length
+      );
+      // each family member gets her message
+      familyMembers.forEach(memberFiscalCode => {
+        // the test passes if at least one of the sent messages
+        // has been sent to the currente family member
+        const allMessagePaths = processServiceSendMessageRequest.mock.calls
+          .map(([{ path }]) => path)
+          .join("|");
+        expect(allMessagePaths).toContain(memberFiscalCode);
+      });
     });
-    expect(true).toBeTruthy();
   });
 });
