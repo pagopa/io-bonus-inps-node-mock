@@ -213,7 +213,7 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
       expect(processServiceSendMessageRequest).toHaveBeenCalledTimes(
         familyMembers.length
       );
-      // each family memeber gets her message
+      // each family member gets her message
       familyMembers.forEach(memberFiscalCode => {
         // the test passes if at least one of the sent messages
         // has been sent to the currente family member
