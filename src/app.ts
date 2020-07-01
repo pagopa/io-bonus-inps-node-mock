@@ -12,10 +12,23 @@ import {
 } from "./fixtures/fiscalcode";
 import { INPS_RESPONSES } from "./fixtures/inps";
 
+export interface IMockServerProcessors {
+  processInpsRequest: jest.Mock;
+  processInpsResponse: jest.Mock;
+
+  processAdeRequest: jest.Mock;
+  processAdeResponse: jest.Mock;
+
+  processServiceGetProfileRequest: jest.Mock;
+  processServiceGetProfileResponse: jest.Mock;
+
+  processServiceSendMessageRequest: jest.Mock;
+  processServiceSendMessageResponse: jest.Mock;
+}
+
 export async function newExpressApp(
   _: typeof CONFIG,
-  requestMock: jest.Mock,
-  responseMock: jest.Mock
+  processors: IMockServerProcessors
 ): Promise<Express.Application> {
   const app = express();
 
@@ -31,7 +44,7 @@ export async function newExpressApp(
   app.use(bodyParserXml({}));
 
   app.post("/INPS*", async (req, res) => {
-    requestMock(req);
+    processors.processInpsRequest(req);
 
     const fiscalCode =
       req.body["soapenv:envelope"]["soapenv:body"][0][
@@ -49,27 +62,27 @@ export async function newExpressApp(
       constVoid
     ).run();
 
-    responseMock(payload);
     res.status(status).send(payload);
+    processors.processInpsResponse(payload);
   });
 
   app.post("/ADE*", (req, res) => {
+    processors.processAdeRequest(req);
     const fiscalCode = req.body.codiceFiscaleDichiarante;
 
     const options = parseFiscalCode(fiscalCode);
-
-    responseMock(res);
 
     const [status, payload] = ADE_RESPONSES[options.adeResponse](
       options.adeResponse === "A" ? req.body : fiscalCode
     );
     res.status(status).json(payload);
+    processors.processAdeResponse(payload);
   });
 
   // profile
   app.get("/SERVICE*", (req, res) => {
-    requestMock(req);
-    responseMock(res);
+    processors.processServiceGetProfileRequest(req);
+    processors.processServiceGetProfileResponse(res);
     res
       .status(200)
       .json(req.body)
@@ -78,8 +91,8 @@ export async function newExpressApp(
 
   // message
   app.post("/SERVICE*", (req, res) => {
-    requestMock(req);
-    responseMock(req.body);
+    processors.processServiceSendMessageRequest(req);
+    processors.processServiceSendMessageResponse(res);
     res.status(200).json(req.body);
   });
 
