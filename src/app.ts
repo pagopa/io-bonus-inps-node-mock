@@ -93,7 +93,7 @@ export async function newExpressApp(
   app.post("/SERVICE*", (req, res) => {
     processors.processServiceSendMessageRequest(req);
     processors.processServiceSendMessageResponse(res);
-    res.status(200).json(req.body);
+    res.status(201).json(req.body);
   });
 
   return app;

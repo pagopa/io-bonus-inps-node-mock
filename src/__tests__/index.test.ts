@@ -122,7 +122,7 @@ describe("Scenario: DSU is not eligible", () => {
       expect(subject).toContain("completato le verifiche");
       // message sent
       const { statusCode } = processServiceSendMessageResponse.mock.calls[0][0];
-      expect(statusCode).toBe(200);
+      expect(statusCode).toBe(201);
     });
   });
 });
@@ -184,7 +184,7 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
       expect(subject).toContain("completato le verifiche");
       // message sent
       const { statusCode } = processServiceSendMessageResponse.mock.calls[0][0];
-      expect(statusCode).toBe(200);
+      expect(statusCode).toBe(201);
     });
   });
 
