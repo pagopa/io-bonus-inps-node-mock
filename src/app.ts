@@ -73,7 +73,7 @@ export async function newExpressApp(
     const options = parseFiscalCode(fiscalCode);
 
     const [status, payload] = ADE_RESPONSES[options.adeResponse](
-      options.adeResponse === "A" ? req.body : fiscalCode
+      options.adeResponse === "bonusWillBeActivated" ? req.body : fiscalCode
     );
     res.status(status).json(payload);
     processors.processAdeResponse(payload);

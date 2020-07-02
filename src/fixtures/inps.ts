@@ -106,9 +106,9 @@ export const EligibilityCheckFailure = (
 export const EligibilityCheckError = (): MockResponse => [500, "Error"];
 
 export const INPS_RESPONSES = {
-  A: EligibilityCheckSuccessEligible,
-  B: EligibilityCheckFailure,
-  C: EligibilityCheckSuccessEligibleWithDiscrepancies,
-  D: EligibilityCheckSuccessIneligible,
-  E: EligibilityCheckError
+  isEligible: EligibilityCheckSuccessEligible,
+  hasEligibilityFailure: EligibilityCheckFailure,
+  isEligibleWithDiscrepancies: EligibilityCheckSuccessEligibleWithDiscrepancies,
+  isIneligible: EligibilityCheckSuccessIneligible,
+  hasEligibilityError: EligibilityCheckError
 };

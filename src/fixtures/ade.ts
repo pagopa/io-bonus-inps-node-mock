@@ -99,12 +99,12 @@ export const AdeResponse400x908NoRetry = (
 };
 
 export const ADE_RESPONSES = {
-  A: AdeResponseOk,
-  B: AdeResponse400x1000NoRetry,
-  C: AdeResponse400x1005NoRetry,
-  D: AdeResponse400x900NoRetry,
-  E: AdeResponse400x907NoRetry,
-  F: AdeResponse400x908NoRetry,
-  G: AdeResponse500x3000Retry,
-  H: AdeResponse500x4000Retry
+  bonusActivationWillFailWithCode1000: AdeResponse400x1000NoRetry,
+  bonusActivationWillFailWithCode1005: AdeResponse400x1005NoRetry,
+  bonusActivationWillFailWithCode3000AndRetries: AdeResponse500x3000Retry,
+  bonusActivationWillFailWithCode4000AndRetries: AdeResponse500x4000Retry,
+  bonusActivationWillFailWithCode900: AdeResponse400x900NoRetry,
+  bonusActivationWillFailWithCode907: AdeResponse400x907NoRetry,
+  bonusActivationWillFailWithCode908: AdeResponse400x908NoRetry,
+  bonusWillBeActivated: AdeResponseOk
 };

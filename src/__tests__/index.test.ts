@@ -74,9 +74,9 @@ describe("Scenario: DSU is not eligible", () => {
   beforeAll(() => {
     testingSession = createTestingSession(db);
     fiscalCode = makeFiscalCode({
-      adeResponse: "A",
+      adeResponse: "bonusWillBeActivated",
       adeTimeout: 0,
-      inpsResponse: "D",
+      inpsResponse: "isIneligible",
       inpsTimeout: 0
     });
     familyMembers = getFamilyMembersForFiscalCode(fiscalCode);
@@ -136,9 +136,9 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
   beforeAll(() => {
     testingSession = createTestingSession(db);
     fiscalCode = makeFiscalCode({
-      adeResponse: "A",
+      adeResponse: "bonusWillBeActivated",
       adeTimeout: 0,
-      inpsResponse: "A",
+      inpsResponse: "isEligible",
       inpsTimeout: 0
     });
     familyMembers = getFamilyMembersForFiscalCode(fiscalCode);
