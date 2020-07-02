@@ -63,7 +63,9 @@ afterAll(async () => {
   await sleep(5000);
   server.close();
 });
-beforeEach(() => jest.resetAllMocks());
+beforeEach(() => {
+  jest.resetAllMocks();
+});
 
 describe("Scenario: DSU is not eligible", () => {
   // tslint:disable-next-line: no-let one-variable-per-declaration
@@ -100,29 +102,23 @@ describe("Scenario: DSU is not eligible", () => {
     expect(await res.json()).toMatchObject({
       id: fiscalCode
     });
+
+    // wait for message to be sent
     await waitForExpect(() => {
       expect(processInpsRequest).toHaveBeenCalledTimes(1);
-      expect(processInpsResponse).toHaveBeenCalledWith(
-        expect.stringContaining('SottoSoglia="NO"')
-      );
-    });
-    await waitForExpect(() => {
       expect(processServiceSendMessageRequest).toHaveBeenCalledTimes(1);
-      const {
-        body: {
-          content: { subject, markdown }
-        },
-        path
-      } = processServiceSendMessageRequest.mock.calls[0][0];
+    });
 
-      // sent to the correct user
-      expect(path).toContain(fiscalCode);
-      // sent the correct message
-      expect(markdown).toContain("supera la soglia");
-      expect(subject).toContain("completato le verifiche");
-      // message sent
-      const { statusCode } = processServiceSendMessageResponse.mock.calls[0][0];
-      expect(statusCode).toBe(201);
+    // this check is actually against the mock, does it make sense?
+    expect(processInpsResponse).toHaveBeenCalledWith(
+      expect.stringContaining('SottoSoglia="NO"')
+    );
+
+    // a message has been sent to the correct user with the correct content
+    expect(processServiceSendMessageRequest).toHaveBeenCalledWith({
+      markdown: expect.stringContaining("supera la soglia"),
+      recipientFiscalCode: fiscalCode,
+      subject: expect.stringContaining("completato le verifiche")
     });
   });
 });
@@ -161,30 +157,22 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
     expect(await res.json()).toMatchObject({
       id: fiscalCode
     });
-    await waitForExpect(() => {
-      expect(processInpsRequest).toHaveBeenCalledTimes(1);
-      expect(processInpsResponse).toHaveBeenCalledWith(
-        expect.stringContaining('SottoSoglia="SI"')
-      );
-    });
 
+    // wait for message to be sent
     await waitForExpect(async () => {
       expect(processServiceSendMessageRequest).toHaveBeenCalledTimes(1);
-      const {
-        body: {
-          content: { subject, markdown }
-        },
-        path
-      } = processServiceSendMessageRequest.mock.calls[0][0];
+    });
 
-      // sent to the correct user
-      expect(path).toContain(fiscalCode);
-      // sent the correct message
-      expect(markdown).toContain("il tuo nucleo familiare ha diritto");
-      expect(subject).toContain("completato le verifiche");
-      // message sent
-      const { statusCode } = processServiceSendMessageResponse.mock.calls[0][0];
-      expect(statusCode).toBe(201);
+    // this check is actually against the mock, does it make sense?
+    expect(processInpsResponse).toHaveBeenCalledWith(
+      expect.stringContaining('SottoSoglia="SI"')
+    );
+
+    // a message has been sent to the correct user with the correct content
+    expect(processServiceSendMessageRequest).toHaveBeenCalledWith({
+      markdown: expect.stringContaining("il tuo nucleo familiare ha diritto"),
+      recipientFiscalCode: fiscalCode,
+      subject: expect.stringContaining("completato le verifiche")
     });
   });
 
@@ -204,23 +192,23 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
 
     testingSession.registerBonus(createdBonusActivation.id);
 
+    // wait for: call ade service and send one message per family member
     await waitForExpect(() => {
       expect(processAdeRequest).toHaveBeenCalledTimes(1);
       expect(processAdeResponse).toHaveBeenCalledTimes(1);
-    });
-    await waitForExpect(() => {
-      // one message per family member
       expect(processServiceSendMessageRequest).toHaveBeenCalledTimes(
         familyMembers.length
       );
-      // each family member gets her message
-      familyMembers.forEach(memberFiscalCode => {
-        // the test passes if at least one of the sent messages
-        // has been sent to the currente family member
-        const allMessagePaths = processServiceSendMessageRequest.mock.calls
-          .map(([{ path }]) => path)
-          .join("|");
-        expect(allMessagePaths).toContain(memberFiscalCode);
+    });
+
+    // each family member gets her message
+    familyMembers.forEach(memberFiscalCode => {
+      // the test passes if at least one of the sent messages
+      // has been sent to the currente family member
+      expect(processServiceSendMessageRequest).toHaveBeenCalledWith({
+        markdown: expect.any(String),
+        recipientFiscalCode: memberFiscalCode,
+        subject: expect.any(String)
       });
     });
   });

@@ -1,12 +1,15 @@
 import * as express from "express";
 import * as bodyParserXml from "express-xml-bodyparser";
-import { constVoid } from "fp-ts/lib/function";
+import { constVoid, identity } from "fp-ts/lib/function";
+import { readableReport } from "italia-ts-commons/lib/reporters";
 import { delayTask } from "italia-ts-commons/lib/tasks";
 import { Millisecond } from "italia-ts-commons/lib/units";
 import * as morgan from "morgan";
+import { IncomingRequestValue, SendMessageInput } from "./__mocks__/mocks";
 import { CONFIG } from "./config";
 import { ADE_RESPONSES } from "./fixtures/ade";
 import {
+  extractFiscalCode,
   getFamilyMembersForFiscalCode,
   parseFiscalCode
 } from "./fixtures/fiscalcode";
@@ -91,7 +94,15 @@ export async function newExpressApp(
 
   // message
   app.post("/SERVICE*", (req, res) => {
-    processors.processServiceSendMessageRequest(req);
+    const parsedRequestValue = SendMessageInput.decode({
+      markdown: req.body.content.markdown,
+      recipientFiscalCode: extractFiscalCode(req.path),
+      subject: req.body.content.subject
+    })
+      .map<IncomingRequestValue<SendMessageInput>>(identity)
+      .getOrElseL(readableReport);
+
+    processors.processServiceSendMessageRequest(parsedRequestValue);
     processors.processServiceSendMessageResponse(res);
     res.status(201).json(req.body);
   });

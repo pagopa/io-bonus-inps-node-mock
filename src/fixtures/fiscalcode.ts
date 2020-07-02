@@ -155,3 +155,9 @@ export const getFamilyMembersForFiscalCode = (
     fiscalCode.replace("YYY", "PPP") as FiscalCode
   ];
 };
+
+export const extractFiscalCode = (content: string): string | undefined => {
+  const rx = /([A-Z0-9]{16})(.*)/g;
+  const arr = rx.exec(content);
+  return arr ? arr[1] : undefined;
+};
