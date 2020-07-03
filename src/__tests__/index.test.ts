@@ -127,6 +127,72 @@ describe("Scenario: DSU is not eligible", () => {
   });
 });
 
+describe("Scenario: EligibilityCheck and GetEligibilityCheck", () => {
+  // tslint:disable-next-line: no-let one-variable-per-declaration
+  let fiscalCode: FiscalCode, testingSession: ITestingSession;
+  // tslint:disable-next-line: no-let
+  let familyMembers: ReturnType<typeof getFamilyMembersForFiscalCode>;
+
+  beforeAll(() => {
+    testingSession = createTestingSession(db);
+    fiscalCode = makeFiscalCode({
+      adeResponse: "A",
+      adeTimeout: 0,
+      inpsResponse: "A",
+      inpsTimeout: 0
+    });
+    familyMembers = getFamilyMembersForFiscalCode(fiscalCode);
+  });
+
+  afterAll(async () => {
+    await testingSession.cleanData().then(printCleanReport);
+  });
+  it("should be sottosoglia", async () => {
+    testingSession.registerFiscalCode(fiscalCode);
+    testingSession.registerFamilyUID(generateFamilyUID(familyMembers));
+
+    const res = await fetch(
+      `${API_URL}/bonus/vacanze/eligibility/${fiscalCode}`,
+      {
+        method: "POST"
+      }
+    );
+    expect(res.status).toEqual(201);
+    expect(await res.json()).toMatchObject({
+      id: fiscalCode
+    });
+    // tslint:disable-next-line: no-let
+    let resGet = await fetch(
+      `${API_URL}/bonus/vacanze/eligibility/${fiscalCode}`,
+      {
+        method: "GET"
+      }
+    );
+    expect(resGet.status).toEqual(202);
+    expect(await resGet.text()).toBe("Accepted");
+    // Polling on GetEligibilityCheck
+    do {
+      await sleep(1000);
+      resGet = await fetch(
+        `${API_URL}/bonus/vacanze/eligibility/${fiscalCode}`,
+        {
+          method: "GET"
+        }
+      );
+    } while (resGet.status !== 200);
+
+    expect(processInpsRequest).toHaveBeenCalledTimes(1);
+    expect(processInpsResponse).toHaveBeenCalledWith(
+      expect.stringContaining('SottoSoglia="SI"')
+    );
+
+    await waitForExpect(async () => {
+      await sleep(10000);
+      expect(processServiceSendMessageRequest).toBeCalledTimes(0);
+    });
+  });
+});
+
 describe("Scenario: DSU is eligible and ADE will approve", () => {
   // tslint:disable-next-line: no-let one-variable-per-declaration
   let fiscalCode: FiscalCode, testingSession: ITestingSession;
@@ -161,6 +227,7 @@ describe("Scenario: DSU is eligible and ADE will approve", () => {
     expect(await res.json()).toMatchObject({
       id: fiscalCode
     });
+
     await waitForExpect(() => {
       expect(processInpsRequest).toHaveBeenCalledTimes(1);
       expect(processInpsResponse).toHaveBeenCalledWith(
